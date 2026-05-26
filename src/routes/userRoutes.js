@@ -1,0 +1,60 @@
+const express = require('express');
+const router = express.Router();
+const UsuarioController = require('../controllers/UsuarioController');
+const { verificarToken, verificarPropietario, verificarAdmin } = require('../middleware/auth');
+
+/**
+ * GET /api/usuarios
+ * Listar usuarios (solo admin)
+ */
+router.get('/', verificarToken, verificarAdmin, UsuarioController.listarUsuarios);
+
+/**
+ * GET /api/usuarios/:id
+ * Obtener usuario por ID
+ */
+router.get('/:id', verificarToken, UsuarioController.obtenerUsuario);
+
+/**
+ * PUT /api/usuarios/:id
+ * Actualizar usuario (solo propietario o admin)
+ */
+router.put(
+    '/:id',
+    verificarToken,
+    verificarPropietario,
+    UsuarioController.actualizarUsuario
+);
+
+/**
+ * DELETE /api/usuarios/:id
+ * Eliminar usuario (solo propietario o admin)
+ */
+router.delete(
+    '/:id',
+    verificarToken,
+    verificarPropietario,
+    UsuarioController.eliminarUsuario
+);
+
+/**
+ * POST /api/usuarios/:id/cambiar-contrasena
+ * Cambiar contraseña
+ */
+router.post(
+    '/:id/cambiar-contrasena',
+    verificarToken,
+    verificarPropietario,
+    UsuarioController.cambiarContrasena
+);
+
+/**
+ * POST /api/usuarios/:id/verificar-email
+ * Verificar email
+ */
+router.post(
+    '/:id/verificar-email',
+    UsuarioController.verificarEmail
+);
+
+module.exports = router;
