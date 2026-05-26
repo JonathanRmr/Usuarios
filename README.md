@@ -1,20 +1,20 @@
-# 🚀 API de Usuarios - Microservicio Shared-Nothing
+# API de Usuarios - Microservicio Shared-Nothing
 
 API REST para gestión de usuarios con autenticación JWT, construida con Express y MongoDB Atlas.
 
-## 📋 Características
+## Características
 
-- ✅ Autenticación con JWT
-- ✅ Registro y login de usuarios
-- ✅ Gestión de usuarios (CRUD)
-- ✅ Hash seguro de contraseñas con bcrypt
-- ✅ Validación de datos con Joi
-- ✅ Manejo centralizado de errores
-- ✅ Paginación
-- ✅ Middleware de autenticación y autorización
-- ✅ Arquitectura Shared-Nothing
+- Autenticación con JWT
+- Registro y login de usuarios
+- Gestión de usuarios (CRUD)
+-  Hash seguro de contraseñas con bcrypt
+-  Validación de datos con Joi
+- Manejo centralizado de errores
+- Paginación
+- Middleware de autenticación y autorización
+- Arquitectura Shared-Nothing
 
-## 🛠️ Instalación
+##  Instalación
 
 ### Requisitos previos
 - Node.js >= 14
@@ -56,7 +56,7 @@ npm start
 
 El servidor estará disponible en `http://localhost:5000`
 
-## 📚 Endpoints
+##  Endpoints
 
 ### Autenticación
 
@@ -153,7 +153,7 @@ DELETE /api/usuarios/:id
 Authorization: Bearer <token>
 ```
 
-## 🏗️ Arquitectura
+##  Arquitectura
 
 ### Estructura de carpetas
 ```
@@ -172,7 +172,7 @@ src/
 Request → Router → Middleware Auth → Controller → Service → Model → Database
 ```
 
-## 🔐 Autenticación
+##  Autenticación
 
 La API utiliza **JWT (JSON Web Token)** para autenticación.
 
@@ -185,7 +185,7 @@ La API utiliza **JWT (JSON Web Token)** para autenticación.
 - **Duración**: 7 días (configurable en `.env`)
 - **Secret**: Guardado en `.env` (`JWT_SECRET`)
 
-## 🗄️ Base de Datos
+##  Base de Datos
 
 ### Modelo Usuario
 ```javascript
@@ -207,7 +207,7 @@ La API utiliza **JWT (JSON Web Token)** para autenticación.
 }
 ```
 
-## 🔄 Integración con otros Microservicios
+##  Integración con otros Microservicios
 
 Esta API implementa **Shared-Nothing**, permitiendo integración con otros microservicios:
 
@@ -232,13 +232,13 @@ const usuario = await axios.get(
 );
 ```
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 npm test
 ```
 
-## 📝 Variables de Entorno
+##  Variables de Entorno
 
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
@@ -249,7 +249,7 @@ npm test
 | `JWT_EXPIRY` | Duración del token | `7d` |
 | `ALLOWED_ORIGINS` | CORS orígenes permitidos | `http://localhost:3000` |
 
-## 🐛 Manejo de Errores
+##  Manejo de Errores
 
 La API retorna errores estructurados:
 
@@ -267,7 +267,7 @@ La API retorna errores estructurados:
 - `AUTHENTICATION_ERROR` - No autenticado (401)
 - `DATABASE_ERROR` - Error de base de datos (500)
 
-## 📦 Dependencias
+##  Dependencias
 
 - **express**: Framework web
 - **mongoose**: ODM para MongoDB
@@ -280,7 +280,7 @@ La API retorna errores estructurados:
 
 MIT
 
-## 👤 Autor
+##  Autor
 
 Tu nombre aquí
 
