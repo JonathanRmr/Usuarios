@@ -90,17 +90,12 @@ const bcrypt = require('bcrypt');
     // ==================== MÉTODOS ====================
 
     // Hash de contraseña antes de guardar
-    usuarioSchema.pre('save', async function(next) {
+    usuarioSchema.pre('save', async function() {
     // Solo hashear si la contraseña fue modificada
-    if (!this.isModified('contrasena')) return next();
+    if (!this.isModified('contrasena')) return;
 
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.contrasena = await bcrypt.hash(this.contrasena, salt);
-        next();
-    } catch (error) {
-        next(error);
-    }
+    const salt = await bcrypt.genSalt(10);
+    this.contrasena = await bcrypt.hash(this.contrasena, salt);
     });
 
     // Método para comparar contraseñas
