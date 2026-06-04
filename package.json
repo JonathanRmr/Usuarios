@@ -10,7 +10,10 @@
     "mongobd": "^0.0.1-security.0",
     "mongodb": "^7.2.0",
     "mongoose": "^9.6.2",
-    "mongose": "^0.0.2-security"
+    "mongose": "^0.0.2-security",
+    "swagger": "^0.7.5",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
   },
   "name": "usuarios",
   "version": "1.0.0",

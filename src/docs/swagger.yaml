@@ -1,0 +1,717 @@
+openapi: 3.0.3
+info:
+  title: Usuarios API
+  description: |
+    API REST para gestión de usuarios con autenticación JWT.
+    
+    ## Autenticación
+    La mayoría de endpoints requieren un token JWT en el header `Authorization` con el formato:
+    ```
+    Authorization: Bearer <token>
+    ```
+    
+    ## Roles
+    - **cliente** – usuario estándar (por defecto)
+    - **vendedor** – usuario con rol de vendedor
+    - **admin** – administrador con acceso total
+  version: 1.0.0
+  contact: {}
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local
+
+tags:
+  - name: Auth
+    description: Registro, login y manejo de tokens JWT
+  - name: Usuarios
+    description: Gestión de perfiles de usuario
+
+# ─────────────────────────────────────────────
+# SECURITY SCHEME
+# ─────────────────────────────────────────────
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # ─────────────────────────────────────────────
+  # SCHEMAS
+  # ─────────────────────────────────────────────
+  schemas:
+
+    # ── Modelo de Usuario (respuesta pública) ──
+    Usuario:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "664f1a2b3c4d5e6f7a8b9c0d"
+        nombres:
+          type: string
+          example: "Juan"
+        apellido:
+          type: string
+          example: "Pérez"
+        email:
+          type: string
+          format: email
+          example: "juan@example.com"
+        telefono:
+          type: string
+          example: "+57 300 123 4567"
+        ciudad:
+          type: string
+          example: "Bogotá"
+        edad:
+          type: integer
+          example: 28
+        tipoUsuario:
+          type: string
+          enum: [cliente, admin, vendedor]
+          example: "cliente"
+        estadoCuenta:
+          type: string
+          enum: [activo, inactivo, suspendido]
+          example: "activo"
+        verificado:
+          type: boolean
+          example: false
+        fechaCreacion:
+          type: string
+          format: date-time
+          example: "2024-06-01T12:00:00.000Z"
+        ultimaActualizacion:
+          type: string
+          format: date-time
+          example: "2024-06-01T12:00:00.000Z"
+        ultimaConexion:
+          type: string
+          format: date-time
+          example: "2024-06-04T08:30:00.000Z"
+
+    # ── Respuesta genérica de error ──
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Mensaje de error"
+
+    # ── Respuesta 401 ──
+    Unauthorized:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "No autorizado"
+        detalles:
+          type: string
+          example: "Token no proporcionado"
+
+    # ── Respuesta 403 ──
+    Forbidden:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Acceso denegado. Se requieren permisos de administrador"
+
+# ─────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────
+paths:
+
+  # ════════ HEALTH CHECK ════════
+  /health:
+    get:
+      summary: Health check
+      description: Verifica que el servicio esté en línea.
+      tags: []
+      responses:
+        '200':
+          description: Servicio operativo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  service:
+                    type: string
+                    example: "Usuarios API"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-06-04T10:00:00.000Z"
+
+  # ════════ AUTH ════════
+  /api/auth/registro:
+    post:
+      summary: Registrar nuevo usuario
+      description: Crea una nueva cuenta de usuario y devuelve un token JWT.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, contrasena, nombres]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "juan@example.com"
+                contrasena:
+                  type: string
+                  minLength: 6
+                  example: "miPassword123"
+                nombres:
+                  type: string
+                  minLength: 2
+                  example: "Juan"
+      responses:
+        '201':
+          description: Usuario registrado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  mensaje:
+                    type: string
+                    example: "Usuario registrado correctamente"
+                  data:
+                    type: object
+                    properties:
+                      usuario:
+                        $ref: '#/components/schemas/Usuario'
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      summary: Iniciar sesión
+      description: Autentica al usuario y devuelve un token JWT.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, contrasena]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "juan@example.com"
+                contrasena:
+                  type: string
+                  example: "miPassword123"
+      responses:
+        '200':
+          description: Sesión iniciada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  mensaje:
+                    type: string
+                    example: "Sesión iniciada correctamente"
+                  data:
+                    type: object
+                    properties:
+                      usuario:
+                        $ref: '#/components/schemas/Usuario'
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/refresh-token:
+    post:
+      summary: Refrescar token JWT
+      description: Genera un nuevo token a partir de un token válido (aunque próximo a vencer).
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Token refrescado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Token no proporcionado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/verificar-token:
+    post:
+      summary: Verificar validez de un token JWT
+      description: Comprueba si el token es válido y devuelve el ID del usuario contenido.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Token válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      usuarioId:
+                        type: string
+                        example: "664f1a2b3c4d5e6f7a8b9c0d"
+        '400':
+          description: Token no proporcionado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ════════ USUARIOS ════════
+  /api/usuarios:
+    get:
+      summary: Listar usuarios (solo admin)
+      description: Devuelve una lista paginada y filtrable de usuarios. Requiere rol **admin**.
+      tags: [Usuarios]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: pagina
+          in: query
+          description: Número de página (mínimo 1, por defecto 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: limite
+          in: query
+          description: Resultados por página (1–100, por defecto 10)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          example: 10
+        - name: tipoUsuario
+          in: query
+          description: Filtrar por tipo de usuario
+          schema:
+            type: string
+            enum: [cliente, admin, vendedor]
+        - name: estadoCuenta
+          in: query
+          description: Filtrar por estado de cuenta
+          schema:
+            type: string
+            enum: [activo, inactivo, suspendido]
+        - name: ciudad
+          in: query
+          description: Filtrar por ciudad
+          schema:
+            type: string
+          example: "Bogotá"
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Usuario'
+                  pagina:
+                    type: integer
+                    example: 1
+                  limite:
+                    type: integer
+                    example: 10
+                  total:
+                    type: integer
+                    example: 42
+        '400':
+          description: Parámetros de query inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '403':
+          description: No tiene permisos de administrador
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forbidden'
+
+  /api/usuarios/{id}:
+    get:
+      summary: Obtener usuario por ID
+      description: Devuelve los datos de un usuario específico. Requiere autenticación.
+      tags: [Usuarios]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario (MongoDB ObjectId)
+          schema:
+            type: string
+          example: "664f1a2b3c4d5e6f7a8b9c0d"
+      responses:
+        '200':
+          description: Datos del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Usuario'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Actualizar usuario
+      description: Actualiza los datos del usuario. Solo puede hacerlo el **propietario** de la cuenta o un **admin**.
+      tags: [Usuarios]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+          example: "664f1a2b3c4d5e6f7a8b9c0d"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombres:
+                  type: string
+                  minLength: 2
+                  example: "Juan Carlos"
+                apellido:
+                  type: string
+                  example: "Pérez"
+                telefono:
+                  type: string
+                  example: "+57 300 123 4567"
+                ciudad:
+                  type: string
+                  example: "Medellín"
+                edad:
+                  type: integer
+                  minimum: 0
+                  example: 30
+      responses:
+        '200':
+          description: Usuario actualizado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  mensaje:
+                    type: string
+                    example: "Usuario actualizado correctamente"
+                  data:
+                    $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '403':
+          description: No tiene permiso para modificar este usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forbidden'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Eliminar usuario
+      description: Elimina la cuenta de un usuario. Solo puede hacerlo el **propietario** o un **admin**.
+      tags: [Usuarios]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+          example: "664f1a2b3c4d5e6f7a8b9c0d"
+      responses:
+        '200':
+          description: Usuario eliminado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    example: { "mensaje": "Usuario eliminado" }
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '403':
+          description: No tiene permiso para eliminar este usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forbidden'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/usuarios/{id}/cambiar-contrasena:
+    post:
+      summary: Cambiar contraseña
+      description: Permite al **propietario** o un **admin** cambiar la contraseña del usuario.
+      tags: [Usuarios]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+          example: "664f1a2b3c4d5e6f7a8b9c0d"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contrasenaActual, contrasenaNueva]
+              properties:
+                contrasenaActual:
+                  type: string
+                  example: "miPasswordActual123"
+                contrasenaNueva:
+                  type: string
+                  example: "miNuevoPassword456"
+      responses:
+        '200':
+          description: Contraseña cambiada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    example: { "mensaje": "Contraseña actualizada correctamente" }
+        '400':
+          description: Las contraseñas son requeridas o la contraseña actual es incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '403':
+          description: No tiene permiso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forbidden'
+
+  /api/usuarios/{id}/verificar-email:
+    post:
+      summary: Verificar email
+      description: Verifica el email del usuario mediante un token de verificación. **No requiere autenticación**.
+      tags: [Usuarios]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+          example: "664f1a2b3c4d5e6f7a8b9c0d"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  description: Token de verificación enviado al email del usuario
+                  example: "abc123tokenVerificacion"
+      responses:
+        '200':
+          description: Email verificado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    example: { "mensaje": "Email verificado correctamente" }
+        '400':
+          description: Token no proporcionado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
