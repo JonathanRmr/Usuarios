@@ -123,7 +123,7 @@ class AuthController {
 
         res.json({
             success: true,
-            data: { usuarioId: decoded.usuarioId },
+            data: { id: decoded.id, tipoUsuario: decoded.tipoUsuario },
         });
         } catch (error) {
         next(error);

@@ -9,18 +9,18 @@ class UsuarioService {
         // Verificar que el email no exista
         const usuarioExistente = await Usuario.findOne({ email: datos.email });
         if (usuarioExistente) {
-        throw new ValidationError('El email ya está registrado');
+            throw new ValidationError('El email ya está registrado');
         }
 
         try {
-        const usuario = new Usuario(datos);
-        await usuario.save();
-        return usuario.perfilPublico();
+            const usuario = new Usuario(datos);
+            await usuario.save();
+            return usuario.perfilPublico();
         } catch (error) {
-        if (error.code === 11000) {
-            throw new ValidationError('El email ya está registrado');
-        }
-        throw error;
+            if (error.code === 11000) {
+                throw new ValidationError('El email ya está registrado');
+            }
+            throw error;
         }
     }
 
@@ -30,7 +30,7 @@ class UsuarioService {
     async obtenerUsuarioPorId(id) {
         const usuario = await Usuario.findById(id);
         if (!usuario) {
-        throw new NotFoundError('Usuario no encontrado');
+            throw new NotFoundError('Usuario no encontrado');
         }
         return usuario.perfilPublico();
     }
@@ -41,7 +41,7 @@ class UsuarioService {
     async obtenerUsuarioPorEmail(email) {
         const usuario = await Usuario.findOne({ email }).select('+contrasena');
         if (!usuario) {
-        throw new NotFoundError('Usuario no encontrado');
+            throw new NotFoundError('Usuario no encontrado');
         }
         return usuario;
     }
@@ -56,13 +56,36 @@ class UsuarioService {
         delete datos.tokenVerificacion;
 
         const usuario = await Usuario.findByIdAndUpdate(
-        id,
-        { ...datos, ultimaActualizacion: new Date() },
-        { new: true, runValidators: true }
+            id,
+            { ...datos, ultimaActualizacion: new Date() },
+            { new: true, runValidators: true }
         );
 
         if (!usuario) {
-        throw new NotFoundError('Usuario no encontrado');
+            throw new NotFoundError('Usuario no encontrado');
+        }
+
+        return usuario.perfilPublico();
+    }
+    /**
+     * Cambiar el tipo de usuario (rol). Solo para admins.
+     */
+    async cambiarTipoUsuario(id, nuevoTipo) {
+        const tiposValidos = ['cliente', 'barbero', 'admin'];
+        if (!tiposValidos.includes(nuevoTipo)) {
+            throw new ValidationError(
+                `Tipo de usuario inválido. Debe ser uno de: ${tiposValidos.join(', ')}`
+            );
+        }
+
+        const usuario = await Usuario.findByIdAndUpdate(
+            id,
+            { tipoUsuario: nuevoTipo, ultimaActualizacion: new Date() },
+            { new: true, runValidators: true }
+        );
+
+        if (!usuario) {
+            throw new NotFoundError('Usuario no encontrado');
         }
 
         return usuario.perfilPublico();
@@ -74,7 +97,7 @@ class UsuarioService {
     async eliminarUsuario(id) {
         const usuario = await Usuario.findByIdAndDelete(id);
         if (!usuario) {
-        throw new NotFoundError('Usuario no encontrado');
+            throw new NotFoundError('Usuario no encontrado');
         }
         return { mensaje: 'Usuario eliminado correctamente' };
     }
@@ -92,22 +115,22 @@ class UsuarioService {
         if (filtros.ciudad) query.ciudad = filtros.ciudad;
 
         const [usuarios, total] = await Promise.all([
-        Usuario.find(query)
-            .select('-contrasena -tokenVerificacion -resetToken')
-            .skip(saltar)
-            .limit(limite)
-            .sort({ fechaCreacion: -1 }),
-        Usuario.countDocuments(query),
+            Usuario.find(query)
+                .select('-contrasena -tokenVerificacion -resetToken')
+                .skip(saltar)
+                .limit(limite)
+                .sort({ fechaCreacion: -1 }),
+            Usuario.countDocuments(query),
         ]);
 
         return {
-        datos: usuarios,
-        paginacion: {
-            pagina,
-            limite,
-            total,
-            totalPaginas: Math.ceil(total / limite),
-        },
+            datos: usuarios,
+            paginacion: {
+                pagina,
+                limite,
+                total,
+                totalPaginas: Math.ceil(total / limite),
+            },
         };
     }
 
@@ -117,12 +140,12 @@ class UsuarioService {
     async cambiarContrasena(id, contrasenaActual, contrasenaNueva) {
         const usuario = await Usuario.findById(id).select('+contrasena');
         if (!usuario) {
-        throw new NotFoundError('Usuario no encontrado');
+            throw new NotFoundError('Usuario no encontrado');
         }
 
         const esValida = await usuario.compararContrasena(contrasenaActual);
         if (!esValida) {
-        throw new ValidationError('Contraseña actual incorrecta');
+            throw new ValidationError('Contraseña actual incorrecta');
         }
 
         usuario.contrasena = contrasenaNueva;
@@ -137,11 +160,11 @@ class UsuarioService {
     async verificarEmail(id, token) {
         const usuario = await Usuario.findById(id).select('+tokenVerificacion');
         if (!usuario) {
-        throw new NotFoundError('Usuario no encontrado');
+            throw new NotFoundError('Usuario no encontrado');
         }
 
         if (usuario.tokenVerificacion !== token) {
-        throw new ValidationError('Token de verificación inválido');
+            throw new ValidationError('Token de verificación inválido');
         }
 
         usuario.verificado = true;
@@ -156,7 +179,7 @@ class UsuarioService {
      */
     async registrarConexion(id) {
         await Usuario.findByIdAndUpdate(id, {
-        ultimaConexion: new Date(),
+            ultimaConexion: new Date(),
         });
     }
 }

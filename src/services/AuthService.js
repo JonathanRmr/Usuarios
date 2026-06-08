@@ -16,7 +16,7 @@ class AuthService {
         });
 
         // Generar token JWT
-        const token = this.generarToken(usuario._id);
+        const token = this.generarToken(usuario._id, usuario.tipoUsuario);
 
         return {
             usuario,
@@ -44,7 +44,7 @@ class AuthService {
         await UsuarioService.registrarConexion(usuario._id);
 
         // Generar token
-        const token = this.generarToken(usuario._id);
+        const token = this.generarToken(usuario._id, usuario.tipoUsuario);
 
         return {
         usuario: usuario.perfilPublico(),
@@ -55,13 +55,13 @@ class AuthService {
     /**
      * Generar JWT
      */
-    generarToken(usuarioId) {
+    generarToken(usuarioId, tipoUsuario) {
         return jwt.sign(
-        { usuarioId, iat: Date.now() },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRY || '7d' }
+            { id: usuarioId, tipoUsuario },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRY || '7d' }
         );
-    }
+}
 
     /**
      * Verificar JWT
@@ -79,7 +79,7 @@ class AuthService {
      */
     refrescarToken(token) {
         const decoded = this.verificarToken(token);
-        return this.generarToken(decoded.usuarioId);
+        return this.generarToken(decoded.id, decoded.tipoUsuario);
     }
 }
 

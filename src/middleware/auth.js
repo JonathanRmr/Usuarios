@@ -17,7 +17,7 @@ const verificarToken = (req, res, next) => {
         const decoded = AuthService.verificarToken(token);
 
         // Almacenar datos en el request
-        req.usuarioId = decoded.usuarioId;
+        req.usuarioId = decoded.id;
         req.usuario = decoded;
 
         next();

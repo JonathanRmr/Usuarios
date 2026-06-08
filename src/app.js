@@ -1,8 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const swaggerUi = require('swagger-ui-express');
-const fs = require('fs');
-const YAML = require('js-yaml');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const { errorHandler } = require('./middleware/errorHandler');
@@ -25,10 +22,6 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
-
-// Swagger
-const swaggerDoc = YAML.load(fs.readFileSync('./src/docs/swagger.yaml', 'utf8'));
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
 // Rutas
 app.use('/api/auth', authRoutes);

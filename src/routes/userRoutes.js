@@ -56,5 +56,15 @@ router.post(
     '/:id/verificar-email',
     UsuarioController.verificarEmail
 );
+/**
+ * PATCH /api/usuarios/:id/rol
+ * Cambiar tipo de usuario (solo admin)
+ */
+router.patch(
+    '/:id/rol',
+    verificarToken,
+    verificarAdmin,
+    UsuarioController.cambiarRol
+);
 
 module.exports = router;

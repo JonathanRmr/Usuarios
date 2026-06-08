@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-    const usuarioSchema = new mongoose.Schema({
+const usuarioSchema = new mongoose.Schema({
     // Información básica
     id: {
         type: String,
@@ -49,10 +49,10 @@ const bcrypt = require('bcrypt');
     },
     tipoUsuario: {
         type: String,
-        enum: ['cliente', 'admin', 'vendedor'],
+        enum: ['cliente', 'admin', 'barbero'],
         default: 'cliente',
     },
-    
+
     // Fechas
     fechaCreacion: {
         type: Date,
@@ -83,40 +83,39 @@ const bcrypt = require('bcrypt');
         type: Date,
         select: false,
     },
-    }, {
+}, {
     timestamps: false, // Usamos nuestros propios campos de fecha
-    });
+});
 
-    // ==================== MÉTODOS ====================
+// ==================== MÉTODOS ====================
 
-    // Hash de contraseña antes de guardar
-    usuarioSchema.pre('save', async function() {
+// Hash de contraseña antes de guardar
+usuarioSchema.pre('save', async function () {
     // Solo hashear si la contraseña fue modificada
     if (!this.isModified('contrasena')) return;
 
     const salt = await bcrypt.genSalt(10);
     this.contrasena = await bcrypt.hash(this.contrasena, salt);
-    });
+});
 
-    // Método para comparar contraseñas
-    usuarioSchema.methods.compararContrasena = async function(contrasenaIngresada) {
+// Método para comparar contraseñas
+usuarioSchema.methods.compararContrasena = async function (contrasenaIngresada) {
     return await bcrypt.compare(contrasenaIngresada, this.contrasena);
-    };
+};
 
-    // Método para obtener perfil público (sin datos sensibles)
-    usuarioSchema.methods.perfilPublico = function() {
+// Método para obtener perfil público (sin datos sensibles)
+usuarioSchema.methods.perfilPublico = function () {
     const usuario = this.toObject();
     delete usuario.contrasena;
     delete usuario.tokenVerificacion;
     delete usuario.resetToken;
     delete usuario.resetTokenExpira;
     return usuario;
-    };
+};
 
-    // Actualizar timestamp al modificar
-    usuarioSchema.pre('findByIdAndUpdate', function(next) {
+// Actualizar timestamp al modificar (hook de query correcto + estilo async)
+usuarioSchema.pre('findOneAndUpdate', async function () {
     this.set({ ultimaActualizacion: new Date() });
-    next();
 });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);
