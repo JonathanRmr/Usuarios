@@ -4,6 +4,14 @@ const UsuarioController = require('../controllers/UsuarioController');
 const { verificarToken, verificarPropietario, verificarAdmin } = require('../middleware/auth');
 
 /**
+ * GET /api/usuarios/barberos
+ * Lista pública de barberos activos (sin token).
+ * Solo devuelve _id y nombres — no expone emails ni datos sensibles.
+ * Necesaria para que clientes puedan elegir barbero al reservar cita.
+ */
+router.get('/barberos', UsuarioController.listarBarberos);
+
+/**
  * GET /api/usuarios
  * Listar usuarios (solo admin)
  */
@@ -56,6 +64,7 @@ router.post(
     '/:id/verificar-email',
     UsuarioController.verificarEmail
 );
+
 /**
  * PATCH /api/usuarios/:id/rol
  * Cambiar tipo de usuario (solo admin)

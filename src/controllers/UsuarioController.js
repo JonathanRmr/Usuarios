@@ -20,9 +20,31 @@ const schemaListarUsuarios = Joi.object({
 
 class UsuarioController {
     /**
-* PATCH /api/usuarios/:id/rol
-* Cambiar el tipo de usuario (solo admin)
-*/
+     * GET /api/usuarios/barberos
+     * Lista pública de barberos activos (sin token).
+     * Solo expone _id y nombres.
+     */
+    async listarBarberos(req, res, next) {
+        try {
+            const Usuario = require('../models/Usuario');
+            const barberos = await Usuario.find(
+                { tipoUsuario: 'barbero', estadoCuenta: 'activo' },
+                { _id: 1, nombres: 1 }
+            ).lean();
+
+            res.json({
+                success: true,
+                data: barberos,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * PATCH /api/usuarios/:id/rol
+     * Cambiar el tipo de usuario (solo admin)
+     */
     async cambiarRol(req, res, next) {
         try {
             const { tipoUsuario } = req.body;
@@ -44,6 +66,7 @@ class UsuarioController {
             next(error);
         }
     }
+
     /**
      * GET /api/usuarios/:id
      * Obtener usuario por ID
@@ -66,7 +89,6 @@ class UsuarioController {
      */
     async actualizarUsuario(req, res, next) {
         try {
-            // Validar datos
             const { error, value } = schemaActualizarUsuario.validate(req.body);
             if (error) {
                 return res.status(400).json({
