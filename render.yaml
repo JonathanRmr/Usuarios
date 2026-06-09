@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: barbertime-usuarios
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRY
+        value: 7d
+      - key: ALLOWED_ORIGINS
+        sync: false
