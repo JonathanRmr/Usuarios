@@ -56,10 +56,10 @@ class UsuarioService {
         delete datos.tokenVerificacion;
 
         const usuario = await Usuario.findByIdAndUpdate(
-            id,
-            { ...datos, ultimaActualizacion: new Date() },
-            { new: true, runValidators: true }
-        );
+    id,
+    { ...datos, ultimaActualizacion: new Date() },
+    { returnDocument: 'after', runValidators: true }  // ✅
+);
 
         if (!usuario) {
             throw new NotFoundError('Usuario no encontrado');
@@ -79,10 +79,10 @@ class UsuarioService {
         }
 
         const usuario = await Usuario.findByIdAndUpdate(
-            id,
-            { tipoUsuario: nuevoTipo, ultimaActualizacion: new Date() },
-            { new: true, runValidators: true }
-        );
+    id,
+    { tipoUsuario: nuevoTipo, ultimaActualizacion: new Date() },
+    { returnDocument: 'after', runValidators: true }  // ✅
+);
 
         if (!usuario) {
             throw new NotFoundError('Usuario no encontrado');
